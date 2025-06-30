@@ -1,0 +1,11 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: my-container
+          image: my-image
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "infra"
+          effect: "NoSchedule"
