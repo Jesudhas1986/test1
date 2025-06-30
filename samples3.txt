@@ -1,0 +1,9 @@
+oc patch dc <dc-name> --type='merge' -p '{
+  "spec": {
+    "template": {
+      "spec": {
+        "tolerations": []
+      }
+    }
+  }
+}'
