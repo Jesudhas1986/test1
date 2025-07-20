@@ -1,0 +1,97 @@
+Step‑by‑step
+🔹 1. Edit your Service to use NodePort or LoadBalancer
+Example Service with NodePort
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-grpc-service
+spec:
+  selector:
+    app: my-grpc-app
+  type: NodePort
+  ports:
+    - name: grpc
+      port: 50051            # Service port
+      targetPort: 50051      # Pod port
+      protocol: TCP
+      nodePort: 30051        # Fixed NodePort (optional)
+✅ After applying:
+
+Your gRPC server is reachable on any node IP of your cluster:
+
+kotlin
+Copy
+Edit
+<node-external-ip>:30051
+If you omit nodePort, OpenShift will pick a random port in the 30000–32767 range.
+
+Example Service with LoadBalancer
+If your OpenShift cluster is on a cloud (AWS/GCP/Azure) and supports LoadBalancer Services:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-grpc-service
+spec:
+  selector:
+    app: my-grpc-app
+  type: LoadBalancer
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+      protocol: TCP
+✅ After applying:
+
+OpenShift will provision a cloud LoadBalancer and give you an external IP/DNS.
+
+Connect directly to:
+
+makefile
+Copy
+Edit
+<loadbalancer-ip>:50051
+🔹 2. Test connectivity
+If NodePort:
+
+bash
+Copy
+Edit
+grpcurl -plaintext <node-external-ip>:30051 list
+If LoadBalancer:
+
+bash
+Copy
+Edit
+grpcurl -plaintext <lb-ip>:50051 list
+✅ -plaintext is required because your gRPC server is not using TLS.
+
+🔹 3. Firewall / Security
+Make sure:
+
+Your cluster nodes are accessible on the NodePort range (30000–32767) or on the LoadBalancer port.
+
+Check with your infra/network team if any firewall allows access.
+
+✨ Summary
+Type	Works With	How to connect
+NodePort	Any cluster (on‑prem or cloud)	<node-ip>:<nodePort>
+LoadBalancer	Cloud clusters	<LB‑ip>:<port>
+
+✅ No need to modify your gRPC server
+✅ No need to handle TLS if you’re okay with plaintext
+
+➡️ Do you want me to generate a ready-to-apply Service YAML for NodePort or LoadBalancer?
+Just tell me:
+
+your app’s Service name,
+
+the target port (e.g., 50051),
+
+whether you want NodePort or LoadBalancer.
