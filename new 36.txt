@@ -1,0 +1,114 @@
+⭐️ Prerequisites
+✅ An NGINX ingress controller installed in your cluster (e.g., via OperatorHub or Helm).
+✅ Your gRPC backend Service is already running and listening on plaintext HTTP/2 (no TLS).
+✅ You’re okay with accessing it through the ingress controller’s exposed port (LoadBalancer or NodePort of the ingress).
+
+✅ Step 1: Create your backend Service
+Here’s a ClusterIP Service for your gRPC backend (example: port 50051, pod label app: my-grpc-app):
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-backend
+  labels:
+    app: my-grpc-app
+spec:
+  selector:
+    app: my-grpc-app
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+      protocol: TCP
+  type: ClusterIP
+✅ Step 2: Create an Ingress with h2c support
+Nginx ingress supports gRPC/h2c via an annotation:
+nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+
+Example Ingress manifest:
+
+yaml
+Copy
+Edit
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grpc-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+spec:
+  rules:
+  - host: grpc.example.com   # Replace with your hostname
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grpc-backend
+            port:
+              number: 50051
+🔧 Important Notes for h2c (plaintext)
+The NGINX ingress controller must be configured to accept HTTP/2 without TLS.
+In most setups, NGINX ingress expects TLS on the frontend by default.
+If you want plaintext, you need to configure the controller with:
+
+yaml
+Copy
+Edit
+controller:
+  config:
+    h2c: "true"
+when installing via Helm, or set in ConfigMap:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configuration
+  namespace: ingress-nginx
+data:
+  h2c: "true"
+This tells NGINX to allow HTTP/2 over cleartext from clients.
+
+If your ingress is exposed via TLS (e.g., via a LoadBalancer with certs), you don’t need h2c because NGINX will handle TLS termination and forward HTTP/2 to your backend.
+
+✅ Step 3: Apply them
+bash
+Copy
+Edit
+oc apply -f grpc-backend-svc.yaml
+oc apply -f grpc-ingress.yaml
+✅ Step 4: Test it
+From outside:
+
+bash
+Copy
+Edit
+grpcurl -plaintext grpc.example.com:80 list
+(Use port 80 if ingress is exposed on HTTP without TLS.)
+
+If TLS is enabled on the ingress (and you have certs):
+
+bash
+Copy
+Edit
+grpcurl -import-path . -proto your.proto grpc.example.com:443 list
+🚀 Summary
+✅ Service: normal ClusterIP exposing your pod.
+✅ Ingress: with annotation nginx.ingress.kubernetes.io/backend-protocol: "GRPC".
+✅ Ingress NGINX ConfigMap: ensure h2c: "true" if you want to accept plaintext HTTP/2 on port 80.
+
+💡 If you like, I can also give you:
+
+A sample Helm values.yaml to enable h2c,
+
+Or a ready ConfigMap for an existing ingress controller.
+
+👉 Let me know your host name and ports, and I’ll customize the YAML for you! 🚀🔥
