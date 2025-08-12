@@ -1,0 +1,90 @@
+Got it — you want to pull logs from Buildbot via its API and push them into Splunk automatically.
+
+Here’s how you can do that step-by-step:
+
+1️⃣ Get Buildbot Logs from the API
+Buildbot’s REST API exposes logs in JSON.
+
+Example endpoint:
+
+bash
+Copy
+Edit
+GET http://<buildbot-server>:8010/api/v2/logs/<log_id>/contents
+<log_id> comes from /api/v2/steps/<step_id>/logs
+
+The API returns an array of lines or chunks of the log.
+
+Example:
+
+json
+Copy
+Edit
+{
+  "lines": [
+    ["0", "Build started"],
+    ["1", "Running unit tests"],
+    ["2", "All tests passed"]
+  ]
+}
+2️⃣ Send the Logs to Splunk via HTTP Event Collector (HEC)
+Python Script Example
+python
+Copy
+Edit
+import requests
+import json
+
+# ===== SPLUNK CONFIG =====
+SPLUNK_HEC_URL = "https://splunk-server:8088/services/collector"
+SPLUNK_TOKEN = "YOUR-HEC-TOKEN"
+
+# ===== BUILDBOT CONFIG =====
+BUILDBOT_API_URL = "http://buildbot-server:8010/api/v2/logs/123/contents"  # Replace with actual log_id
+
+# ===== FETCH LOGS FROM BUILDBOT =====
+resp = requests.get(BUILDBOT_API_URL)
+resp.raise_for_status()
+log_data = resp.json()
+
+# ===== PREPARE LOG EVENTS =====
+events = []
+for line_number, log_line in log_data["lines"]:
+    events.append({
+        "event": {
+            "buildbot_log_line": log_line,
+            "line_number": int(line_number)
+        },
+        "sourcetype": "buildbot:log"
+    })
+
+# ===== SEND TO SPLUNK =====
+headers = {
+    "Authorization": f"Splunk {SPLUNK_TOKEN}"
+}
+
+# Send events in one batch
+payload = json.dumps({"event": events})  # HEC can also accept a list of events
+
+# If sending individually:
+# for evt in events:
+#     requests.post(SPLUNK_HEC_URL, headers=headers, data=json.dumps(evt), verify=False)
+
+r = requests.post(SPLUNK_HEC_URL, headers=headers, data=json.dumps(events), verify=False)
+print(f"Splunk response: {r.status_code} - {r.text}")
+3️⃣ Important Notes
+Authentication: If your Buildbot API is protected, add auth=(user, pass) in the requests.get call.
+
+Event size: Splunk HEC has a size limit per request (~1MB), so split logs if needed.
+
+Sourcetype: Keep sourcetype=buildbot:log so you can search in Splunk with:
+
+ini
+Copy
+Edit
+sourcetype="buildbot:log"
+Timestamp: You can add "time": "<epoch_time>" to each event for accurate indexing.
+
+If you want, I can make this script auto-discover the latest build’s logs from Buildbot instead of hardcoding the log ID, so it always sends the newest build logs to Splunk without manual changes.
+
+Do you want me to make that auto-discovery version?
