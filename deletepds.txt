@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: delete-my-app-pods
+  namespace: my-namespace
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: delete-pods
+            image: registry.access.redhat.com/openshift-tools/oc:latest
+            command:
+            - /bin/sh
+            - -c
+            - >
+              oc delete pod -l app=my-app -n my-namespace
+          restartPolicy: OnFailure
+          serviceAccountName: my-sa
