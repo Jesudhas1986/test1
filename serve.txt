@@ -1,0 +1,2 @@
+oc create serviceaccount my-sa -n my-namespace
+oc adm policy add-role-to-user edit -z my-sa -n my-namespace
