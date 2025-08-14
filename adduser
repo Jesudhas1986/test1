@@ -1,0 +1,2 @@
+oc create serviceaccount pod-deleter-sa -n <namespace>
+oc adm policy add-role-to-user edit system:serviceaccount:<namespace>:pod-deleter-sa
