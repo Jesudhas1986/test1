@@ -1,0 +1,119 @@
+Got it — you want to read a Buildbot log in Python, parse it into structured JSON, and send it to Splunk.
+
+I’ll walk you through step-by-step assuming you’re sending to Splunk via HTTP Event Collector (HEC) (the easiest for programmatic sends).
+
+1. Enable HEC in Splunk
+
+In Splunk Web:
+Settings → Data Inputs → HTTP Event Collector → New Token
+
+Name: buildbot_logs
+
+Source type: json (or custom like buildbot_events)
+
+App Context: choose your app
+
+Keep “Enable indexer acknowledgment” off for now (simpler).
+
+Note the Token Value and HEC URL (e.g., https://splunk-server:8088/services/collector).
+
+In Global Settings for HEC:
+
+Set All Tokens = Enabled
+
+Adjust Maximum Content Length if needed (default: 1 MB)
+
+2. Sample Python Script
+
+Here’s a minimal example:
+
+import json
+import requests
+from datetime import datetime
+
+# Splunk HEC config
+SPLUNK_HEC_URL = "https://splunk-server:8088/services/collector"
+SPLUNK_HEC_TOKEN = "YOUR-HEC-TOKEN-HERE"
+VERIFY_SSL = False  # Set to True if using valid SSL cert
+
+def send_to_splunk(events):
+    """Send a list of events to Splunk HEC."""
+    headers = {
+        "Authorization": f"Splunk {SPLUNK_HEC_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = ""
+    for event in events:
+        # Each event is wrapped in a Splunk HEC envelope
+        payload += json.dumps({
+            "time": event.get("time", datetime.utcnow().isoformat() + "Z"),
+            "host": event.get("host", "buildbot-server"),
+            "source": event.get("source", "buildbot"),
+            "sourcetype": event.get("sourcetype", "buildbot_log"),
+            "event": event
+        }) + "\n"
+
+    response = requests.post(SPLUNK_HEC_URL, headers=headers, data=payload, verify=VERIFY_SSL)
+    if response.status_code != 200:
+        print("Error sending to Splunk:", response.text)
+    else:
+        print("Sent to Splunk successfully.")
+
+def parse_buildbot_log(file_path):
+    """Parse a Buildbot log file into structured events."""
+    events = []
+    with open(file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Example: parsing a log line like "[2025-08-16 11:22:33] Build succeeded"
+            try:
+                timestamp_str = line.split("]")[0].strip("[]")
+                message = "]".join(line.split("]")[1:]).strip()
+                event = {
+                    "time": datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S").isoformat() + "Z",
+                    "level": "INFO" if "succeeded" in message.lower() else "ERROR" if "failed" in message.lower() else "DEBUG",
+                    "message": message
+                }
+                events.append(event)
+            except Exception as e:
+                print(f"Skipping line (parse error): {line}", e)
+    return events
+
+if __name__ == "__main__":
+    buildbot_events = parse_buildbot_log("buildbot.log")
+    send_to_splunk(buildbot_events)
+
+How it Works
+
+parse_buildbot_log()
+Reads your Buildbot log file line-by-line and turns each line into a structured JSON object (you can adjust parsing rules based on your log format).
+
+send_to_splunk()
+Wraps each parsed event in the Splunk HEC event format and sends in batch mode (multiple events in one POST).
+
+Batch Size
+Keep total payload under 1 MB (HEC default) or adjust in Splunk’s HEC settings.
+
+3. Example Buildbot Log → JSON
+
+Input log line:
+
+[2025-08-16 11:22:33] Build succeeded for job #102
+
+
+Parsed JSON sent to Splunk:
+
+{
+  "time": "2025-08-16T11:22:33Z",
+  "level": "INFO",
+  "message": "Build succeeded for job #102"
+}
+
+
+If you want, I can make a smarter parser that extracts job name, build ID, and status directly from Buildbot’s format instead of just treating it as free text.
+That would make searching in Splunk much easier.
+
+Do you want me to make that enhanced parser?
