@@ -1,0 +1,48 @@
+import requests
+from datetime import datetime
+
+# ==== CONFIGURATION ====
+BASE_URL = "https://<buildbot-host>:8010/api/v2"
+USERNAME = "your_username"   # if authentication is enabled
+PASSWORD = "your_password"   # if authentication is enabled
+VERIFY_SSL = False           # set to True if SSL cert is valid
+
+# ==== TIME RANGE ====
+today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+now_ts = datetime.now().timestamp()
+
+# ==== GET ALL BUILDS ====
+builds_url = f"{BASE_URL}/builds"
+response = requests.get(builds_url, auth=(USERNAME, PASSWORD), verify=VERIFY_SSL)
+response.raise_for_status()
+builds = response.json()
+
+for build in builds['builds']:
+    start_time = build.get('start_time', 0)
+    if today_start <= start_time <= now_ts:
+        build_id = build['buildid']
+        print(f"\n==== Build ID: {build_id} ====")
+
+        # ==== GET STEPS FOR THIS BUILD ====
+        steps_url = f"{BASE_URL}/steps?buildid={build_id}"
+        steps = requests.get(steps_url, auth=(USERNAME, PASSWORD), verify=VERIFY_SSL).json()
+
+        for step in steps['steps']:
+            step_id = step['stepid']
+            step_name = step.get('name', 'Unknown Step')
+            print(f"\n--- Step: {step_name} ---")
+
+            # ==== GET LOGS FOR THIS STEP ====
+            logs_url = f"{BASE_URL}/logs?stepid={step_id}"
+            logs = requests.get(logs_url, auth=(USERNAME, PASSWORD), verify=VERIFY_SSL).json()
+
+            for log in logs['logs']:
+                log_id = log['logid']
+                log_name = log.get('name', 'Unnamed Log')
+
+                # ==== GET RAW LOG CONTENT ====
+                raw_log_url = f"{BASE_URL}/logs/{log_id}/raw"
+                raw_log = requests.get(raw_log_url, auth=(USERNAME, PASSWORD), verify=VERIFY_SSL).text
+
+                print(f"\n[Log: {log_name}]")
+                print(raw_log)
