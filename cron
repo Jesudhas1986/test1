@@ -1,0 +1,52 @@
+In OpenShift, a CronJob always runs inside a container using a service account and the permissions granted to it. It does not run as the OpenShift CLI user you are logged in as.
+
+But if your goal is to make the CronJob run with the same user identity / permissions as your current login, here’s what you can do:
+
+1. Log in with your OpenShift user
+oc login <cluster-api-url> -u <your-username> -p <your-password>
+
+2. Switch to the correct project/namespace
+oc project <your-namespace>
+
+3. Create a CronJob YAML
+
+For example:
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: my-cronjob
+spec:
+  schedule: "*/5 * * * *"   # every 5 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: default   # <-- runs with default service account unless changed
+          containers:
+          - name: my-job
+            image: registry.access.redhat.com/ubi8/ubi
+            command: ["echo", "Hello from CronJob"]
+          restartPolicy: OnFailure
+
+4. Make the CronJob run as your user’s permissions
+
+OpenShift users don’t map directly to Linux users, but you can make the CronJob run with your OpenShift user’s access rights by:
+
+Using your project/namespace → The job will run under the permissions your user has in that project.
+
+Binding a Role/ClusterRole to the ServiceAccount used by the CronJob.
+Example:
+
+oc create rolebinding my-cronjob-rb \
+  --clusterrole=edit \
+  --serviceaccount=<your-namespace>:default \
+  --namespace=<your-namespace>
+
+
+This makes the CronJob’s service account have the same level of access (edit, admin, etc.) as you do in that project.
+
+✅ Key point:
+The CronJob does not directly inherit your login session. Instead, you make its service account have equivalent permissions to your user in the project where you logged in.
+
+Do you want me to show you a working YAML example of a CronJob that runs with the same access as your logged-in user (like oc whoami)?
