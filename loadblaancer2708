@@ -1,0 +1,31 @@
+1. Service YAML (to load-balance pods)
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-service
+  namespace: my-namespace
+spec:
+  selector:
+    app: grpc-app   # must match your pod label
+  ports:
+    - name: grpc
+      port: 50051        # service port (client connects here)
+      targetPort: 50051  # container port your gRPC server listens on
+      protocol: TCP
+  type: ClusterIP   # keep ClusterIP, Route will expose it
+
+2. Route YAML (for external gRPC)
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: grpc-route
+  namespace: my-namespace
+spec:
+  to:
+    kind: Service
+    name: grpc-service
+  port:
+    targetPort: grpc
+  tls:
+    termination: passthrough   # critical for gRPC
+  wildcardPolicy: None
