@@ -1,0 +1,29 @@
+heck Splunk internal logs
+
+On the Splunk server, look at:
+
+$SPLUNK_HOME/var/log/splunk/splunkd.log
+
+
+Search for HttpInputDataHandler or HttpInputServer errors.
+
+Check HEC health endpoint
+
+Run:
+
+curl -k https://<splunk-host>:8088/services/collector/health
+
+
+You should get a JSON response like:
+
+{"text":"HEC is healthy","code":0}
+
+
+Verify token & headers
+
+Use a minimal working curl test with your HEC token:
+
+curl -k https://<splunk-host>:8088/services/collector \
+  -H "Authorization: Splunk <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"event":"hello"}'
