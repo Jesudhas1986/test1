@@ -1,0 +1,93 @@
+can I send it to /tmp directory in master
+ChatGPT said:
+
+Yes ✅ — you can upload files from a worker to the /tmp directory on the master in Buildbot.
+
+Just make sure that:
+
+The user running the Buildbot master process has write permission to /tmp.
+
+You provide the absolute path in masterdest.
+
+Example
+from buildbot.plugins import steps, util
+
+f = util.BuildFactory()
+
+f.addStep(steps.FileUpload(
+    workersrc="build/output.tar.gz",    # file created on worker
+    masterdest="/tmp/output.tar.gz"     # absolute path on master
+))
+
+
+This will take output.tar.gz from the worker and place it into /tmp on the master machine.
+
+⚠️ Caution:
+
+Files in /tmp may be deleted automatically (e.g., after reboot or by cleanup jobs).
+
+For permanent artifacts, it’s better to use a dedicated directory inside your Buildbot master (like ~/buildbot/artifacts/).
+
+👉 Do you want me to also show you how to serve that uploaded file via the Buildbot web UI (so you can download it easily)?
+
+You said:
+can you copy directory 
+ChatGPT said:
+
+Yes 👍 — in Buildbot you can copy a whole directory from a worker → master (or the other way) using the same FileUpload / FileDownload steps.
+
+But there’s a trick: these steps transfer files, not directories.
+So to transfer a directory, you normally:
+
+Archive it on the worker (tar or zip it).
+
+Upload the archive to the master.
+
+(Optionally) extract it on the master.
+
+🔹 Example: Worker → Master (copy directory)
+from buildbot.plugins import steps, util
+
+f = util.BuildFactory()
+
+# Step 1: Pack directory on worker
+f.addStep(steps.ShellCommand(
+    command=["tar", "-czf", "mydir.tar.gz", "mydir"]
+))
+
+# Step 2: Upload to master
+f.addStep(steps.FileUpload(
+    workersrc="mydir.tar.gz",
+    masterdest="/tmp/mydir.tar.gz"
+))
+
+# Step 3 (optional): Extract on master
+f.addStep(steps.MasterShellCommand(
+    command=["tar", "-xzf", "/tmp/mydir.tar.gz", "-C", "/tmp/"]
+))
+
+🔹 Example: Master → Worker (copy directory)
+from buildbot.plugins import steps, util
+
+f = util.BuildFactory()
+
+# Step 1: Pack directory on master
+f.addStep(steps.MasterShellCommand(
+    command=["tar", "-czf", "/tmp/configs.tar.gz", "-C", "/etc/", "configs"]
+))
+
+# Step 2: Download to worker
+f.addStep(steps.FileDownload(
+    mastersrc="/tmp/configs.tar.gz",
+    workerdest="configs.tar.gz"
+))
+
+# Step 3: Extract on worker
+f.addStep(steps.ShellCommand(
+    command=["tar", "-xzf", "configs.tar.gz"]
+))
+
+
+✅ This way, you effectively “copy” entire directories between worker and master.
+
+Do you want me to show you a generic helper step (like a reusable Python function) that takes a directory name and automatically handles tar + upload + untar?
