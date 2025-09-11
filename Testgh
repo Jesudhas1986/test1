@@ -1,0 +1,75 @@
+Got it 👍
+You want a Python API with a GET method that reads some data and returns a response. Let’s do it with Flask.
+
+
+---
+
+Example: app.py
+
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+# Sample in-memory data
+users = {
+    1: {"name": "Alice", "age": 25},
+    2: {"name": "Bob", "age": 30},
+    3: {"name": "Charlie", "age": 28}
+}
+
+@app.route("/user/<int:user_id>", methods=["GET"])
+def get_user(user_id):
+    """Read data by user_id and return as JSON"""
+    user = users.get(user_id)
+    if user:
+        return jsonify({"status": "success", "data": user})
+    else:
+        return jsonify({"status": "error", "message": "User not found"}), 404
+
+
+@app.route("/hello", methods=["GET"])
+def hello():
+    """Simple GET returning something"""
+    name = request.args.get("name", "Guest")
+    return jsonify({"message": f"Hello, {name}!"})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
+
+---
+
+How it works
+
+1. Start the app:
+
+python app.py
+
+
+2. Call the endpoints:
+
+Read user by ID:
+
+curl http://localhost:5000/user/1
+
+Response:
+
+{"status": "success", "data": {"name": "Alice", "age": 25}}
+
+GET with query param:
+
+curl "http://localhost:5000/hello?name=John"
+
+Response:
+
+{"message": "Hello, John!"}
+
+
+
+
+
+---
+
+👉 Do you want me to also wrap this into a Dockerfile so you can run the GET API inside a container?
+
