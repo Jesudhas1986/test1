@@ -1,0 +1,41 @@
+1️⃣ GitPoller setup
+from buildbot.changes.gitpoller import GitPoller
+from buildbot.changes import filter
+
+# Poll your Git repo every 60 seconds
+c['change_source'] = [
+    GitPoller(
+        repourl='git@github.com:yourorg/yourrepo.git',
+        branch='main',            # branch to watch
+        workdir='gitpoller-workdir',
+        pollinterval=60,          # check every 60 seconds
+        category='code'           # optional, categorize changes
+    )
+]
+
+2️⃣ Scheduler setup
+from buildbot.schedulers.basic import SingleBranchScheduler
+
+c['schedulers'] = [
+    SingleBranchScheduler(
+        name="main_scheduler",
+        change_filter=filter.ChangeFilter(branch='main'),
+        treeStableTimer=None,       # trigger immediately on change
+        builderNames=["main_builder"]
+    )
+]
+
+3️⃣ Builder example
+from buildbot.process import factory
+from buildbot.steps.shell import ShellCommand
+
+f = factory.BuildFactory()
+f.addStep(ShellCommand(command=["echo", "Building project..."]))
+
+c['builders'] = [
+    {
+        'name': "main_builder",
+        'factory': f,
+        'workernames': ["local_worker"]
+    }
+]
