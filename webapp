@@ -1,0 +1,10 @@
+def home():
+    return """
+    <html>
+        <head><title>Flask Demo</title></head>
+        <body>
+            <h1>Welcome!</h1>
+            <p>This is a small HTML output from Flask.</p>
+        </body>
+    </html>
+    """
