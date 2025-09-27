@@ -1,0 +1,81 @@
+Sure! Let's go step by step. I’ll guide you through writing a simple Python program and running it in OpenShift using the command line.
+
+Step 1: Write a simple Python program
+
+Create a file called app.py with this content:
+
+# app.py
+print("Hello, OpenShift!")
+
+Step 2: Create a Dockerfile (optional if using S2I Python image)
+
+If you want to use a Dockerfile:
+
+# Dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY app.py /app
+CMD ["python", "app.py"]
+
+
+If you prefer, OpenShift has Python S2I images (source-to-image) that let you skip writing a Dockerfile.
+
+Step 3: Log in to OpenShift
+oc login https://<openshift-api-server> --token=<your-token>
+
+Step 4: Create a new project (namespace)
+oc new-project my-python-app
+
+Step 5: Deploy using oc new-app
+
+Option 1: Using local source code with S2I Python image
+
+oc new-app python:3.11~. --name=my-python-app
+
+
+Explanation:
+
+python:3.11 → OpenShift’s S2I Python image
+
+~. → Use current directory as source
+
+Option 2: Using Dockerfile
+
+oc new-app . --name=my-python-app
+
+Step 6: Check the build
+oc get builds
+
+
+Follow the build logs:
+
+oc logs -f bc/my-python-app
+
+Step 7: Run the application
+
+Once built, OpenShift will create a Pod. You can check it:
+
+oc get pods
+
+
+Run the app in the Pod:
+
+oc logs -f pod/<pod-name>
+
+
+You should see:
+
+Hello, OpenShift!
+
+
+✅ Summary:
+
+Write app.py
+
+Use either Dockerfile or S2I Python image
+
+Log in and create project
+
+oc new-app to deploy
+
+Check build and logs
