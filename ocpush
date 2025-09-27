@@ -1,0 +1,72 @@
+1. Internal OpenShift Registry
+
+OpenShift runs its own internal registry. To use images from it:
+
+List image streams
+
+oc get is
+
+
+Pull an image using imageStreamTag
+
+oc new-app <namespace>/<imageStreamName>:<tag>
+
+
+Example:
+
+oc new-app myproject/myapp:1.0
+
+
+Ensure your service account has pull access
+By default, the default service account in your project can pull images from its own namespace. For cross-namespace access, grant system:image-puller:
+
+oc policy add-role-to-user system:image-puller system:serviceaccount:<target-namespace>:default -n <source-namespace>
+
+2. External Registry (Docker Hub, Quay, Private Registry)
+a) Public Images
+
+For public images, just reference the image:
+
+oc new-app docker.io/library/nginx:latest
+
+b) Private Images
+
+Create a secret with your registry credentials
+
+oc create secret docker-registry myregistrykey \
+  --docker-server=<registry-url> \
+  --docker-username=<username> \
+  --docker-password=<password> \
+  --docker-email=<email>
+
+
+Example:
+
+oc create secret docker-registry myregcred \
+  --docker-server=quay.io \
+  --docker-username=jeyasingh \
+  --docker-password=******** \
+  --docker-email=jeyasingh@example.com
+
+
+Link secret to your service account
+
+oc secrets link default myregcred --for=pull
+
+
+Use the image in a deployment or oc new-app
+
+oc new-app quay.io/myuser/myimage:latest
+
+3. Test Pulling Images
+
+You can check if your pod can pull the image:
+
+oc run testpod --image=<image> --restart=Never --rm -it
+
+
+If authentication fails, the pod won’t start.
+
+If you want, I can give a step-by-step example for pulling a private Docker image into OpenShift including creating all necessary secrets and linking them.
+
+Do you want me to do that?
