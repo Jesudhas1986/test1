@@ -1,0 +1,59 @@
+rewrite this without pvc 
+ChatGPT said:
+
+Sure — here’s the simplified DeploymentConfig using the full registry path for the httpd image, without any PVC (so no persistent storage).
+
+This version uses an ephemeral emptyDir volume, which is recreated fresh each time the Pod restarts — ideal for lightweight, temporary deployments.
+
+✅ DeploymentConfig using full registry path (no PVC)
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: httpd-sample
+spec:
+  replicas: 1
+  selector:
+    app: httpd-sample
+  strategy:
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: httpd-sample
+    spec:
+      containers:
+      - name: httpd
+        image: docker.io/library/httpd:2.4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: web-content
+          mountPath: /usr/local/apache2/htdocs
+      volumes:
+      - name: web-content
+        emptyDir: {}
+  triggers:
+  - type: ConfigChange
+
+🔍 Explanation
+
+image: docker.io/library/httpd:2.4 → full registry path to the official Apache HTTPD image.
+
+emptyDir: {} → creates a temporary volume inside the pod.
+
+Content will be deleted when the pod restarts or redeploys.
+
+mountPath: /usr/local/apache2/htdocs → this is where httpd serves content from.
+
+No PVC or storage configuration → simplifies setup; suitable for testing or static content baked into the image.
+
+🌐 Optional: expose service and route
+oc expose dc/httpd-sample --port=80 --name=httpd-service
+oc expose svc/httpd-service
+
+
+This will give you a route URL to access the server externally.
+
+Would you like me to modify this version to serve content from a ConfigMap instead (for static HTML files), so it can show a custom page instead of the default Apache index?
