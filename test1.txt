@@ -1,0 +1,19 @@
+# Define two parameters in a JSON body
+$body = @{
+    username = "testuser"
+    password = "mypassword"
+} | ConvertTo-Json
+
+# Define the header for JSON content
+$headers = @{
+    "Content-Type" = "application/json"
+}
+
+# Convert headers to a format usable in curl
+$headerArgs = $headers.GetEnumerator() | ForEach-Object { "-H `"$($_.Key): $($_.Value)`"" } -join " "
+
+# Define URL
+$url = "https://example.com/api/login"
+
+# Run curl command with body and header
+curl -X POST $url $headerArgs -d $body
