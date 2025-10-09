@@ -1,1 +1,0 @@
-base64 ./image.png | oc exec -i my-pod -- sh -c 'base64 -d > /tmp/image.png'
