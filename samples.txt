@@ -1,7 +1,0 @@
-initContainers:
-  - name: fix-perms
-    image: busybox
-    command: ['sh', '-c', 'chmod -R 777 /app/logs']
-    volumeMounts:
-      - name: log-volume
-        mountPath: /app/logs
