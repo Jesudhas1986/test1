@@ -181,6 +181,13 @@ Would you like me to show how to store and parse the JSON response (for example,
 
 
 
+curl.exe -X POST "https://example.com/api/users" `
+  -H "Content-Type: application/json" `
+  -H "Accept: application/json" `
+  -d "{`"name`":`"$var1`",`"role`":`"$var2`"}"
+
+
+
 
 No file chosenNo file chosen
 ChatGPT can make mistakes. Check important info. See Cookie Preferences.
