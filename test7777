@@ -1,0 +1,38 @@
+Fetch the PR refs from upstream
+
+git fetch upstream pull/NN/head:pr-NN-upstream
+
+
+NN = PR number in the upstream repo.
+
+This creates a local branch named pr-NN-upstream pointing to the PR’s head commit.
+
+Checkout and inspect
+
+git checkout pr-NN-upstream
+git log --oneline   # inspect commits
+
+
+Make changes / commit
+
+# edit files...
+git add .
+git commit -m "Fix: adjust behavior X in PR #NN"
+
+
+Push this branch to your fork (origin)
+
+git push origin pr-NN-upstream
+
+
+This creates yourname/pr-NN-upstream on GitHub.
+
+Create or update a Pull Request
+
+If you want the original PR author’s branch updated: you usually cannot push to their branch unless given write access. Instead:
+
+Open a PR from yourname/pr-NN-upstream → upstream:target-branch (create a new PR) OR
+
+On GitHub, comment in the original PR explaining you created a replacement branch and link it.
+
+If you want the upstream PR owner to include your changes, you can open a new PR or ask them to pull from your branch.
