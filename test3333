@@ -1,0 +1,51 @@
+1. Direct inline JSON with escaped quotes
+curl.exe -X POST "https://example.com/api" `
+  -H "Content-Type: application/json" `
+  -d "{`"name`":`"$var1`",`"role`":`"$var2`"}"
+
+2. Use ConvertTo-Json with a hashtable (recommended & clean)
+$body = @{ name = $var1; role = $var2 } | ConvertTo-Json
+curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" -d $body
+
+3. Build JSON manually with a here-string
+$body = @"
+{
+  "name": "$var1",
+  "role": "$var2"
+}
+"@
+curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" -d $body
+
+4. Use string formatting (-f operator)
+$body = ('{{"name":"{0}","role":"{1}"}}' -f $var1, $var2)
+curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" -d $body
+
+5. Combine with subexpression $()
+curl.exe -X POST "https://example.com/api" `
+  -H "Content-Type: application/json" `
+  -d "{`"name`":`"$($var1)`",`"role`":`"$($var2)`"}"
+
+6. Use Join-String for inline concatenation
+$body = '{"name":"' + $var1 + '","role":"' + $var2 + '"}'
+curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" -d $body
+
+7. Use PowerShell object → ConvertTo-Json with explicit type
+[PSCustomObject]@{
+  name = $var1
+  role = $var2
+} | ConvertTo-Json | ForEach-Object {
+  curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" -d $_
+}
+
+8. Use JSON string interpolation with double quotes (escaping manually)
+$body = "{""name"":""$var1"",""role"":""$var2""}"
+curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" -d $body
+
+9. Build hashtable, convert to JSON with indentation
+$body = @{ name = $var1; role = $var2 } | ConvertTo-Json -Depth 3
+curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" -d $body
+
+10. Use pipeline to simplify
+@{ name = $var1; role = $var2 } |
+  ConvertTo-Json |
+  ForEach-Object { curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" -d $_ }
