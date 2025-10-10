@@ -1,0 +1,51 @@
+. Use single quotes around JSON in PowerShell
+
+PowerShell interprets double quotes differently — it expands variables and treats some characters specially.
+So if your JSON has double quotes inside, wrap it with single quotes outside.
+
+curl.exe -X POST "https://example.com/api" `
+  -H "Content-Type: application/json" `
+  -d '{"name":"John","age":30}'
+
+✅ 2. If using variables, build JSON safely
+
+When inserting variables, don’t manually concatenate strings — use ConvertTo-Json.
+
+$body = @{
+  name = "John"
+  age  = 30
+} | ConvertTo-Json
+
+curl.exe -X POST "https://example.com/api" `
+  -H "Content-Type: application/json" `
+  -d $body
+
+✅ 3. Avoid PowerShell’s native curl alias
+
+PowerShell aliases curl → Invoke-WebRequest.
+Use curl.exe (Windows executable) explicitly to avoid confusion.
+
+curl.exe -X POST ...
+
+✅ 4. If you see this kind of error
+error: unable to parse JSON
+
+
+It means the JSON body is malformed. Try printing what’s being sent:
+
+Write-Host $body
+
+
+Then copy the printed JSON and validate it at https://jsonlint.com
+.
+
+✅ 5. Example working PowerShell + curl command
+$body = '{"username":"admin","password":"test123"}'
+
+curl.exe -X POST "https://example.com/login" `
+  -H "Content-Type: application/json" `
+  -d $body
+
+
+If you show me your exact curl command, I can point out exactly where the JSON parsing issue occurs.
+Would you like to paste it here?
