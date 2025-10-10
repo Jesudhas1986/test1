@@ -1,0 +1,8 @@
+git checkout -b feature/my-fix
+
+# make edits, commit
+git add .
+git commit -m "Fix: do X"
+
+# push branch to your fork (origin)
+git push origin feature/my-fix
