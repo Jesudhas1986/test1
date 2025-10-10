@@ -1,0 +1,67 @@
+1. Convert JSON to UTF-8 bytes and back to string
+$body = @{ name = "Jeyasingh"; role = "DevOps – Lead" } | ConvertTo-Json
+$utf8Body = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::UTF8.GetBytes($body))
+
+curl.exe -X POST "https://example.com/api" `
+  -H "Content-Type: application/json; charset=utf-8" `
+  -H "Accept: application/json" `
+  -d $utf8Body
+
+
+✅ Ensures proper UTF-8 encoding and prevents strange symbols or 400 errors when the API expects UTF-8.
+
+2. Save to file in UTF-8, then send
+
+If you prefer to avoid encoding issues entirely:
+
+$body = @{ name = "José"; role = "Développeur" } | ConvertTo-Json
+$path = "body.json"
+[System.IO.File]::WriteAllText($path, $body, [System.Text.Encoding]::UTF8)
+
+curl.exe -X POST "https://example.com/api" `
+  -H "Content-Type: application/json; charset=utf-8" `
+  -H "Accept: application/json" `
+  -d "@$path"
+
+
+✅ The @ before filename tells curl to read the file contents as request body.
+
+3. Using UTF-8 conversion inline
+$body = @{ name = "Jeyasingh"; role = "DevOps – Lead" } | ConvertTo-Json
+$utf8Body = [System.Text.Encoding]::UTF8.GetBytes($body)
+curl.exe -X POST "https://example.com/api" -H "Content-Type: application/json" --data-binary $utf8Body
+
+
+✅ --data-binary is better than -d for raw UTF-8 binary-safe uploads.
+
+4. If you want a reusable helper
+
+Create a small function to always output UTF-8 JSON:
+
+function ConvertTo-JsonUtf8 {
+    param([Parameter(Mandatory)] $Object)
+    $json = $Object | ConvertTo-Json -Depth 5
+    return [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::UTF8.GetBytes($json))
+}
+
+$body = ConvertTo-JsonUtf8 @{ name = "Jeyasingh"; role = "DevOps – Lead" }
+
+curl.exe -X POST "https://example.com/api" `
+  -H "Content-Type: application/json; charset=utf-8" `
+  -d $body
+
+5. Verify encoding (optional)
+
+You can confirm it’s UTF-8 before sending:
+
+[System.Text.Encoding]::UTF8.GetBytes($body) | Format-Hex
+
+
+✅ Summary
+
+Purpose	Command
+Convert object to UTF-8 JSON	[System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::UTF8.GetBytes($json))
+Save JSON file as UTF-8	[System.IO.File]::WriteAllText("file.json", $json, [System.Text.Encoding]::UTF8)
+Curl send UTF-8 JSON	-H "Content-Type: application/json; charset=utf-8"
+
+Would you like me to show how to validate the encoding before sending (to confirm it’s UTF-8, not UTF-16) using PowerShell commands?
