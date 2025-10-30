@@ -1,0 +1,7 @@
+Check your repo’s .hg/hgrc or global ~/.hgrc configuration:
+
+[extensions]
+largefiles =
+
+hg forget path/to/largefile.bin
+hg add --large path/to/largefile.bin
