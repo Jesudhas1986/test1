@@ -1,0 +1,32 @@
+❌ No, Buildbot 2.6 is not compatible with Python 3.11.
+
+Here’s why — and what you can safely do instead 👇
+
+⚠️ Why Buildbot 2.6 won’t work with Python 3.11
+Reason	Details
+Python support cutoff	Buildbot 2.6.x was released in 2020 – early 2021, when the latest Python officially supported was 3.8.
+Deprecated APIs	Internal dependencies (Twisted, SQLAlchemy, Jinja2 templates, etc.) in 2.6 use modules and functions removed or changed in Python 3.10 → 3.11.
+Runtime errors	Users who tried running 2.x on 3.10+ reported import errors (asyncio, twisted.internet.defer), string encoding issues, and broken worker-master communication.
+No security or bug fixes	Buildbot 2.x is end-of-life; only 3.x and later receive updates or Python 3.11 testing.
+✅ What you should do instead
+Goal	Recommended Action
+Keep existing configuration	Upgrade to Buildbot 3.9 or newer, which is API-compatible and supports Python 3.11.
+Minimum change upgrade path	pip install "buildbot[bundle]>=3.9,<4.0"
+Want current stable release (Nov 2025)	Install Buildbot 5.4.0 (works with Python 3.11 and 3.12)
+🔗 References
+
+Buildbot Official Docs – Supported Python Versions
+https://docs.buildbot.net/current/manual/installation/requirements.html
+
+Buildbot GitHub Releases (with changelogs)
+https://github.com/buildbot/buildbot/releases
+
+Buildbot 3.9 Announcement – Python 3.11 Support
+https://discourse.buildbot.net/t/buildbot-3-9-0-released/
+
+In short:
+
+🧩 Buildbot 2.6 cannot run on Python 3.11.
+You need Buildbot ≥ 3.9 for stable, tested Python 3.11 support.
+
+Would you like me to show you the step-by-step upgrade process from 2.6 → 3.9 (keeping your existing configs and database)?
