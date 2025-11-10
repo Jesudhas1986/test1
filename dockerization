@@ -1,0 +1,2 @@
+Dockerization is the process of packaging an application along with its dependencies, runtime, and configurations into a lightweight, portable container image.
+This ensures consistent execution across environments—development, testing, staging, and production—while enabling rapid deployment, scalability, and efficient resource utilization in container orchestration platforms like OpenShift.
