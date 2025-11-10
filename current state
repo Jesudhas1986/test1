@@ -1,0 +1,16 @@
+he Current State Analysis phase involves a thorough assessment of the existing application, infrastructure, and processes to understand their architecture, dependencies, performance, and limitations.
+The Refactoring Identification step uses this analysis to determine areas in the code, configuration, and deployment practices that need modification to optimize for containerization, cloud-native deployment, and OpenShift orchestration.
+
+This phase ensures that modernization or migration efforts are informed, systematic, and risk-mitigated.
+
+1. Objectives
+
+Document the current architecture, codebase, dependencies, and deployment environment.
+
+Identify technical debt, performance bottlenecks, and tightly coupled components.
+
+Evaluate compatibility with containerization and OpenShift deployment standards.
+
+Determine refactoring requirements to improve scalability, maintainability, and cloud readiness.
+
+Establish a roadmap for modernization and containerization.
