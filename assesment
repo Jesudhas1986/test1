@@ -1,0 +1,2 @@
+The Assessment Phase is the foundational step in preparing applications for deployment on OpenShift.
+The objective is to gather a complete understanding of the existing codebase, dependencies, infrastructure, and database requirements to plan refactoring, containerization, CI/CD integration, and production deployment.
