@@ -1,0 +1,19 @@
+xternalize Configuration Phase
+Overview
+
+The Externalize Configuration phase focuses on decoupling application configuration from the codebase and moving it into external, environment-specific stores.
+This approach is a key principle of 12-factor applications and is critical for containerized deployments on OpenShift, enabling portability, maintainability, and security across development, testing, and production environments.
+
+Externalizing configuration ensures that the same container image can be deployed in multiple environments without code changes, simply by altering configuration values.
+
+1. Objectives
+
+Separate configuration data from application code.
+
+Enable environment-specific settings (dev, QA, staging, production) without modifying code.
+
+Secure sensitive information such as database credentials, API keys, and certificates.
+
+Facilitate CI/CD pipeline integration for automated deployments.
+
+Improve maintainability and reduce deployment errors.
