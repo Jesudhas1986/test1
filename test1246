@@ -1,0 +1,1 @@
+for i in {1..100}; do history -d $(history 1 | awk '{print $1}'); done
